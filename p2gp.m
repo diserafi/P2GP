@@ -48,7 +48,7 @@ function [xk,fk,gk,pgnorm,nprod,nproj,flag,otherinfo] ...
 %   Marco Viola (marco.viola@uniroma1.it)
 % 
 % Version: 1.0
-% Last Update: January 7, 2018
+% Last Update: January 12, 2018
 %
 % REFERENCES:
 % [1] D. di Serafino, G. Toraldo, M. Viola and J. Barlow,
