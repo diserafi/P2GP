@@ -1,12 +1,12 @@
-July 24, 2017
-
-This folder contains P2GP v. 1.0.
+========================================================================================
+                                     P2GP v. 1.0
+========================================================================================
 
 P2GP is a Matlab package implementing the Proportionality-based Two-phase Gradient
 Projection (P2GP) method, for the solution of Quadratic Programming problems with
 a Single Linear constraint and Bounds on the variables (SLBQPs).
 
-The folder also includes SLBQPgen, a code for the generation of (convex and non-convex)
+The package also includes SLBQPgen, a code for the generation of (convex and non-convex)
 SLBQP test problems.
 
 For details see
