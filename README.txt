@@ -13,10 +13,8 @@ For details see
 
   D. di Serafino, G. Toraldo, M. Viola and J. Barlow,
   "A two-phase gradient method for quadratic programming problems with
-  a single linear constraint and bounds on the variables", 2017,
-  http://arxiv.org/abs/1705.01797
-  or
-  http://www.optimization-online.org/DB_HTML/2017/05/5992.html
+  a single linear constraint and bounds on the variables",
+  SIAM Journal on Optimization, 28 (4), pp. 2809-2838 (doi: 10.1137/17M1128538).
 
 Authors:
   Daniela di Serafino (daniela.diserafino@unicampania.it)
