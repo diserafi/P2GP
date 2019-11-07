@@ -20,7 +20,7 @@
 % ------------------------------------------------------------------------------
 
 function [xmin,Ivar,fmin,gmin,it,nprod,nproj,alfa,info,stepkind] = ...
-    linesearch1(H,c,xk,fk,gk,dk,l,u,q,b,checkflag,mu,it_pg,maxgp,RelaxedStep,GPType,info,nprod,nproj)
+    linesearch1(H,c,xk,fk,gk,dk,l,u,q,b,checkflag,mu,it_pg,maxgp,RelaxedStep,GPType,LSType,info,nprod,nproj)
 
 %==========================================================================
 % This function performs the projected line search used by P2GP in
@@ -76,6 +76,10 @@ function [xmin,Ivar,fmin,gmin,it,nprod,nproj,alfa,info,stepkind] = ...
 %               3 - Projected Adaptive BB (PABBmin) with
 %                   variable threshold tau and memory = 3,
 %              >3 - PABBmin with fixed threshold tau = 0.2 and memory = 3;
+% LSType  = integer, type of linesearch used [default 1]
+%               0 - linesearch over the feasible direction
+%                   (see. Bertsekas `Nonlinear Programming', 1999, section 2.3.1),
+%              >0 - linesearch along the projection arc;
 % info    = struct variable, containing information for the computation of the steplength;
 % nprod   = integer, number of matrix-vector products already performed by P2GP;
 % nproj   = integer, number of calls to the projection routine already performed by P2GP;
@@ -298,41 +302,71 @@ end
 [xmin,Ivar] = simproj(xmin,l,u,q,b,checkflag);
 nproj = nproj + 1;
 
-if isa(H,'function_handle')
-    Ax = H(xmin);
+if LSType>0
+    if isa(H,'function_handle')
+        Ax = H(xmin);
+    else
+        Ax = H*xmin;
+    end
+    nprod = nprod+1;
+    fmin = 0.5*(xmin'*Ax)-c'*xmin;
+    gdx = gk'*(xmin-xk);
 else
-    Ax = H*xmin;
-end
-nprod = nprod+1;
-fmin = 0.5*(xmin'*Ax)-c'*xmin;
-gdx = gk'*(xmin-xk);
+    dk = xmin-xk;
+    gdx = gk'*(dk);
+    dphi0 = -gdx;
+    alfa = 1;
+    linesearch = 1;
 
+    if isa(H,'function_handle')
+        Ad = H(dk);
+    else
+        Ad = H*dk;
+    end
+    nprod = nprod+1;
+    Ax0 = gk + c;
+    fmin = fk + dk'*(0.5*Ad + gk);
+end
 sigma1 = 1e-2;
 sigma2 = 1/2;
 
 if ~isnan(alfa) && linesearch
     while (fmin > fk+mu*gdx) && (it < maxit)
-        if linesearch == 1
-            alfa1 = (dphi0*(alfa^2))/(2*(fmin-fk+e));
-            alfa1 = max(sigma1*alfa,min(sigma2*alfa,alfa1));
-        else
-            if linesearch == 2
-                alfa1 = alfa*sigma2;
+        if LSType>0
+            if linesearch == 1
+                alfa1 = (dphi0*(alfa^2))/(2*(fmin-fk+e));
+                alfa1 = max(sigma1*alfa,min(sigma2*alfa,alfa1));
             else
-                alfaind = ceil(alfaind/2);
-                alfa1 = alfavect(alfaind);
+                if linesearch == 2
+                    alfa1 = alfa*sigma2;
+                else
+                    alfaind = ceil(alfaind/2);
+                    alfa1 = alfavect(alfaind);
+                end
             end
-        end
-        xmin = xk+alfa1*dk;
-        [xmin,Ivar] = simproj(xmin,l,u,q,b,checkflag);
-        nproj = nproj + 1;
-        if isa(H,'function_handle')
-            Ax = H(xmin);
+            xmin = xk+alfa1*dk;
+            [xmin,Ivar] = simproj(xmin,l,u,q,b,checkflag);
+            nproj = nproj + 1;
         else
-            Ax = H*xmin;
+            alfa1 = alfa*sigma2;
+            xmin = xk+alfa1*dk;
+            Ivar = zeros(size(xmin));
+            Ivar(xmin<=l) = -1;
+            Ivar(xmin>=u) = 1;
+            Ivar(l==u) = 2;
         end
-        nprod = nprod+1;
-        fmin = 0.5*(xmin'*Ax)-c'*xmin;
+        
+        if LSType>0
+            if isa(H,'function_handle')
+                Ax = H(xmin);
+            else
+                Ax = H*xmin;
+            end
+            nprod = nprod+1;
+            fmin = 0.5*(xmin'*Ax)-c'*xmin;
+        else
+            fmin = fk + alfa1*dk'*(0.5*alfa1*Ad + gk);           
+        end
         gdx = gk'*(xmin-xk);
         e = alfa1*gdx;
         alfa = alfa1;
@@ -404,6 +438,9 @@ if ~isnan(alfa) && linesearch
     end
 end
 
+if ~exist('Ax','var')
+    Ax = Ax0 + alfa*Ad;
+end
 gmin = Ax-c;
 
 end

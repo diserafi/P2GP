@@ -1,7 +1,7 @@
 % This script provides an example of use of P2GP
 
 clear all
-addpath('Examples');
+addpath('ExampleProblems');
 
 % List of the available example problems.
 % All the problems have been built with the test problem generator
@@ -57,5 +57,7 @@ load(problems{pbind});
 H = @(x) MatVetProduct(D,P,x);
 
 %% Run P2GP with standard options and the provided starting point
-[x,fx,gx,pgnorm,nprod,nproj,flag,otherinfo] = p2gp(H,c,l,u,q,b,x0);
+
+options = struct([]);
+[x,fx,gx,pgnorm,nprod,nproj,flag,otherinfo] = p2gp(H,c,l,u,q,b,x0,options);
 
